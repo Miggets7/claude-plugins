@@ -17,6 +17,6 @@ miscalibrations.
 ## Install
 
 ```
-/plugin marketplace add michaelrademaker/claude-plugins
-/plugin install pr-review-verifier@michaelrademaker-claude-plugins
+/plugin marketplace add Miggets7/claude-plugins
+/plugin install pr-review-verifier@miggets7-claude-plugins
 ```

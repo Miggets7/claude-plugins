@@ -1,7 +1,7 @@
 # claude-plugins
 
 This repo contains Claude Code plugins by Michael Rademaker, hosted at
-`michaelrademaker/claude-plugins` on GitHub as a plugin marketplace.
+`Miggets7/claude-plugins` on GitHub as a plugin marketplace.
 
 ## Repository structure
 
@@ -58,8 +58,8 @@ Session 2:  /pr-review-verifier:verify-pr 298     (this plugin)
 ### Install (once published to GitHub)
 
 ```
-/plugin marketplace add michaelrademaker/claude-plugins
-/plugin install pr-review-verifier@michaelrademaker-claude-plugins
+/plugin marketplace add Miggets7/claude-plugins
+/plugin install pr-review-verifier@miggets7-claude-plugins
 ```
 
 ### Local development
