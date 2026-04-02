@@ -1,0 +1,18 @@
+{
+  "name": "michaelrademaker-claude-plugins",
+  "description": "Claude Code plugins by Michael Rademaker",
+  "owner": {
+    "name": "Michael Rademaker",
+    "url": "https://byrt.nl"
+  },
+  "plugins": [
+    {
+      "name": "pr-review-verifier",
+      "description": "Verifies PR review output in a separate isolated session. Cross-references findings against the actual diff to catch false positives, missed issues, and severity miscalibrations.",
+      "source": {
+        "type": "relative",
+        "path": "./pr-review-verifier"
+      }
+    }
+  ]
+}

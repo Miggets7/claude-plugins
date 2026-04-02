@@ -1,0 +1,16 @@
+{
+  "name": "pr-review-verifier",
+  "description": "Verifies the output of a PR review by cross-referencing findings against the actual diff. Catches false positives, missed issues, and severity miscalibrations. Run this in a separate session from the review.",
+  "version": "2.0.0",
+  "author": {
+    "name": "Michael Rademaker",
+    "url": "https://byrt.nl"
+  },
+  "keywords": ["pr", "review", "verification", "meta-review"],
+  "license": "MIT",
+  "homepage": "https://github.com/michaelrademaker/claude-plugins/tree/main/pr-review-verifier",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/michaelrademaker/claude-plugins.git"
+  }
+}
