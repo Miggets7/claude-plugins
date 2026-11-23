@@ -55,7 +55,8 @@ jobs:
       pull-requests: write
       issues: write
     uses: Miggets7/claude-plugins/.github/workflows/pr-review.yml@main
-    secrets: inherit
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
 
 The repo needs a `CLAUDE_CODE_OAUTH_TOKEN` secret (`claude setup-token`).
