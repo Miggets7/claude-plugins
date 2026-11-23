@@ -28,7 +28,6 @@ jobs:
         with:
           # Default is the merge commit; inline comments target head-side lines.
           ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 1
 
       - name: Run Claude PR review
         uses: anthropics/claude-code-action@v1
