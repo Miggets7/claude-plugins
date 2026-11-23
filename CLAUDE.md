@@ -98,9 +98,13 @@ Design decisions:
   PR-Agent itself was rejected because it only accepts pay-per-token API keys.
 - `--model opus` is the Claude Code alias for the latest Opus, so no version bumps.
 - `github_token: ${{ github.token }}` avoids depending on the Claude GitHub App
-  being installed; the caller grants `pull-requests: write` and `issues: write`.
+  being installed; the caller grants only `pull-requests: write`, which also
+  covers the issue-comments endpoint used for the sticky comment on a PR.
 - Idempotent on re-push: the describe block is replaced between markers, the
   review comment is found by its `<!-- claude-pr-review -->` marker and edited,
   and existing inline comments are checked before posting new ones.
+- Dismissing a finding: resolve its thread, or reply declining it. Later runs
+  read the review threads and drop dismissed findings, so they do not come
+  back in the sticky comment on every push.
 - Review principles mirror the owner's global code review rules (YAGNI, DRY,
   KISS, blocking criteria).

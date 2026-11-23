@@ -7,7 +7,7 @@
 #   2. review:   one sticky review comment, edited in place on every push
 #   3. improve:  inline comments with committable suggestion blocks
 #
-# Callers must grant: contents: read, pull-requests: write, issues: write.
+# Callers must grant: contents: read, pull-requests: write.
 name: Claude PR Review (reusable)
 
 on:
@@ -107,6 +107,24 @@ jobs:
             Review the full PR diff against the principles below. Keep at most 6 key
             issues, ranked most severe first. Drop anything not worth the author's time.
 
+            ### Earlier findings
+
+            Before choosing key issues, read the existing review threads:
+
+            ```
+            gh api graphql -F owner=<owner> -F name=<repo name> -F n=<n> -f query='
+              query($owner:String!,$name:String!,$n:Int!){repository(owner:$owner,name:$name){
+                pullRequest(number:$n){reviewThreads(first:100){nodes{
+                  isResolved path line
+                  comments(first:20){nodes{author{login} body}}}}}}}'
+            ```
+
+            A finding is dismissed when its thread is resolved, or when a human
+            replied declining it or explaining why it does not apply. Do not list a
+            dismissed finding as a key issue and do not comment on it again, unless
+            later commits changed that code in a way that brings the problem back.
+            Findings that were fixed need no mention.
+
             ### Principles
 
             - **YAGNI:** guards, flags, parameters, abstractions or extension points no
@@ -186,9 +204,8 @@ jobs:
             with `mcp__github_inline_comment__create_inline_comment` (pass
             `confirmed: true`). Issues outside the diff stay in the sticky comment only.
 
-            First list existing inline comments with
-            `gh api repos/<repo>/pulls/<n>/comments --paginate`. Skip any issue that an
-            existing comment already raises on the same code, even if worded
+            Use the review threads you already fetched. Skip any issue that an
+            existing thread already raises on the same code, even if worded
             differently. Never repost a finding on a later push.
 
             Inline comment format: a bold title line (non-blocking titles start with
