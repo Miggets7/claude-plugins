@@ -35,7 +35,6 @@ jobs:
           # Use the workflow token so no Claude GitHub App install is needed;
           # permissions come from the calling workflow.
           github_token: ${{ github.token }}
-          show_full_output: true  # TEMP: debugging, remove
           claude_args: |
             --model opus
             --allowedTools "Read,Grep,Glob,Write,mcp__github_inline_comment__create_inline_comment,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr edit:*),Bash(gh api:*)"
