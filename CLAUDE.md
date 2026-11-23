@@ -9,6 +9,8 @@ This repo contains Claude Code plugins by Michael Rademaker, hosted at
 claude-plugins/
 ├── marketplace.json                          # Marketplace catalog
 ├── README.md
+├── .github/workflows/pr-review.yml           # Shared PR review (reusable)
+├── .github/workflows/claude-code-review.yml   # Calls it for this repo
 └── pr-review-verifier/                       # The only plugin currently
     ├── .claude-plugin/plugin.json
     ├── skills/verify-pr/SKILL.md
@@ -82,3 +84,27 @@ claude --plugin-dir ./pr-review-verifier
   the current session from interpreting and rewriting the skill's instructions.
 - The `allowed-tools` frontmatter key pre-authorizes tools and suppresses the
   permission confirmation prompt.
+
+## Reusable workflow: pr-review.yml
+
+`.github/workflows/pr-review.yml` is called (`workflow_call`) by
+`.github/workflows/claude-code-review.yml` in every Byrt repo, pinned to `@main`.
+Any change here applies to all repos on their next PR push, so test prompt changes
+on a PR in this repo first: this repo's own caller uses the local
+`./.github/workflows/pr-review.yml`, so a PR here runs the edited version.
+
+Design decisions:
+- Runs on the Claude subscription (`CLAUDE_CODE_OAUTH_TOKEN`), not an API key.
+  PR-Agent itself was rejected because it only accepts pay-per-token API keys.
+- `--model opus` is the Claude Code alias for the latest Opus, so no version bumps.
+- `github_token: ${{ github.token }}` avoids depending on the Claude GitHub App
+  being installed; the caller grants only `pull-requests: write`, which also
+  covers the issue-comments endpoint used for the sticky comment on a PR.
+- Idempotent on re-push: the describe block is replaced between markers, the
+  review comment is found by its `<!-- claude-pr-review -->` marker and edited,
+  and existing inline comments are checked before posting new ones.
+- Dismissing a finding: resolve its thread, or reply declining it. Later runs
+  read the review threads and drop dismissed findings, so they do not come
+  back in the sticky comment on every push.
+- Review principles mirror the owner's global code review rules (YAGNI, DRY,
+  KISS, blocking criteria).
