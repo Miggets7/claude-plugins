@@ -18,12 +18,16 @@ on:
 
 jobs:
   review:
+    # Fork PRs get no secrets, so skip them instead of failing.
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: Checkout PR head
         uses: actions/checkout@v4
         with:
+          # Default is the merge commit; inline comments target head-side lines.
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 1
 
       - name: Run Claude PR review
@@ -90,9 +94,11 @@ jobs:
             <!-- claude-describe:end -->
             ```
 
-            Read the current body with `gh pr view <n> --json body -q .body`. If the
-            markers exist, replace only the text between them. Otherwise append the
-            block after the existing body, separated by a blank line. Never change any
+            Read the current body with `gh pr view <n> --json body -q .body`. A marker
+            counts only when it is alone on its own line; ignore mentions inside other
+            text or code. If both markers exist, replace only the text between the last
+            start/end pair. Otherwise append the block after the existing body,
+            separated by a blank line. Never change any
             author text outside the markers. Write the full new body to
             `./.pr-review-tmp/body.md` and apply it with
             `gh pr edit <n> --body-file ./.pr-review-tmp/body.md`.
