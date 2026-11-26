@@ -15,9 +15,8 @@ def preflight(root: Path) -> str:
     current = _git(root, "rev-parse", "--abbrev-ref", "HEAD")
     if current != branch:
         raise ReleaseError(f"on branch {current}; releases are cut from {branch}")
-    _git(root, "fetch", "--quiet", "origin", branch)
     head = _git(root, "rev-parse", "HEAD")
-    if head != _git(root, "rev-parse", f"origin/{branch}"):
+    if head != remote_head(root):
         raise ReleaseError(f"{branch} differs from origin/{branch}; pull or push first")
     return head
 
@@ -35,6 +34,13 @@ def default_branch(root: Path) -> str:
 
 def head(root: Path) -> str:
     return _git(root, "rev-parse", "HEAD")
+
+
+def remote_head(root: Path) -> str:
+    """Fetch the default branch and return the commit origin has for it."""
+    branch = default_branch(root)
+    _git(root, "fetch", "--quiet", "origin", branch)
+    return _git(root, "rev-parse", f"origin/{branch}")
 
 
 def previous_tag(root: Path, platform: str) -> str | None:

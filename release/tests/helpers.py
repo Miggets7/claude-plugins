@@ -45,6 +45,11 @@ class GitRepoTest(TempDirTest):
         git(self.repo, "push", "--quiet", "-u", "origin", "main")
         git(self.repo, "remote", "set-head", "origin", "main")
 
+    def remote_sha(self, ref: str) -> str:
+        """The commit the bare remote has for a branch or tag. `--git-dir` keeps this working where
+        git refuses to discover bare repositories (safe.bareRepository=explicit)."""
+        return git(self.tmp, f"--git-dir={self.remote}", "rev-parse", ref)
+
     def commit_file(self, name: str, content: str, message: str) -> str:
         path = self.repo / name
         path.parent.mkdir(parents=True, exist_ok=True)

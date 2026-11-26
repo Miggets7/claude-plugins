@@ -113,5 +113,5 @@ class WorkingTreeTest(GitRepoTest):
 
         gitops.push(self.repo, ["android-1.2-4"])
 
-        self.assertEqual(git(self.remote, "rev-parse", "main"), head)
-        self.assertEqual(git(self.remote, "rev-parse", "android-1.2-4"), head)
+        self.assertEqual(self.remote_sha("main"), head)
+        self.assertEqual(self.remote_sha("android-1.2-4"), head)

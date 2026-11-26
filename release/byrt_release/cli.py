@@ -125,6 +125,12 @@ def prepare(
 def translate(root: Path, ask: Ask) -> None:
     """Redo the translations after metadata/whats_new.txt was edited."""
     prepared = _prepared(root)
+    # The TestFlight upload carries no text, so only these steps have sent it to a store.
+    if "android_upload" in prepared.done or "ios_notes" in prepared.done:
+        raise ReleaseError(
+            "a store already has these texts; finish with `release ship`, or run `release abort` "
+            "and `release prepare` to release new ones"
+        )
     targets = notes.targets(detect(root), prepared.platforms)
     english = notes.read_source(root)
     texts = notes.translate(english, {locale for locale, _ in targets.values()}, ask)
@@ -167,6 +173,12 @@ def ship(root: Path, config: Config, run: Runner, dry_run: bool) -> None:
         if gitops.head(root) != prepared.head:
             raise ReleaseError(
                 "new commits arrived since `release prepare`; run `release abort`, then `release prepare` again"
+            )
+        # The push at the end would be rejected after both uploads, with nothing left to undo it.
+        if gitops.remote_head(root) != prepared.head:
+            raise ReleaseError(
+                "origin has new commits since `release prepare`; run `release abort`, pull, "
+                "then `release prepare` again"
             )
         unrelated = gitops.changed_paths(root) - touched
         if unrelated:

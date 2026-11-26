@@ -169,6 +169,25 @@ class TranslateAndAbortTest(ReleaseRepoTest):
         with self.assertRaisesRegex(ReleaseError, "release prepare"):
             cli.translate(self.repo, self.ask)
 
+    def test_translate_after_a_store_got_the_texts_is_refused(self):
+        for sent in ("android_upload", "ios_notes"):
+            saved = state.load(self.repo)
+            saved.done = ["android_build", "ios_publish", sent]
+            state.save(self.repo, saved)
+
+            with self.assertRaisesRegex(ReleaseError, "release ship"):
+                cli.translate(self.repo, self.ask)
+
+    def test_translate_after_the_testflight_upload_is_allowed(self):
+        saved = state.load(self.repo)
+        saved.done = ["android_build", "ios_publish"]
+        state.save(self.repo, saved)
+        self.write("metadata/whats_new.txt", "Edited by hand.\n")
+
+        cli.translate(self.repo, FakeAsk(reply={"nl-NL": "Met de hand bewerkt."}))
+
+        self.assertEqual(state.load(self.repo).done, ["android_build", "ios_publish"])
+
     def test_abort_restores_tree_and_clears_state(self):
         cli.abort(self.repo)
 

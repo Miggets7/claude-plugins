@@ -44,9 +44,9 @@ class ShipTest(ReleaseRepoTest):
         self.assertEqual(
             git(self.repo, "log", "-1", "--format=%s"), "Release Android 1.2.1 (20) and iOS 1.2.1 (15)"
         )
-        self.assertEqual(git(self.remote, "rev-parse", "main"), head)
-        self.assertEqual(git(self.remote, "rev-parse", "android-1.2.1-20"), head)
-        self.assertEqual(git(self.remote, "rev-parse", "ios-1.2.1-15"), head)
+        self.assertEqual(self.remote_sha("main"), head)
+        self.assertEqual(self.remote_sha("android-1.2.1-20"), head)
+        self.assertEqual(self.remote_sha("ios-1.2.1-15"), head)
         self.assertEqual(gitops.changed_paths(self.repo), set())
         self.assertIsNone(state.load(self.repo))
 
@@ -112,8 +112,8 @@ class ShipTest(ReleaseRepoTest):
 
         self.assertEqual(self.runner.calls, [])
         head = git(self.repo, "rev-parse", "HEAD")
-        self.assertEqual(git(self.remote, "rev-parse", "main"), head)
-        self.assertEqual(git(self.remote, "rev-parse", "android-1.2.1-20"), head)
+        self.assertEqual(self.remote_sha("main"), head)
+        self.assertEqual(self.remote_sha("android-1.2.1-20"), head)
         self.assertEqual(git(self.repo, "rev-list", "--count", "origin/main"), "4")
         self.assertEqual(len(git(self.repo, "tag", "--list", "android-1.2.1-*").splitlines()), 1)
 
@@ -123,6 +123,17 @@ class ShipTest(ReleaseRepoTest):
         git(self.repo, "stash", "pop", "--quiet")
 
         with self.assertRaisesRegex(ReleaseError, "release prepare"):
+            self.ship()
+        self.assertEqual(self.runner.calls, [])
+
+    def test_ship_refuses_when_origin_moved(self):
+        teammate = self.tmp / "teammate"
+        git(self.tmp, "clone", "--quiet", str(self.remote), str(teammate))
+        git(teammate, "-c", "user.email=t@example.com", "-c", "user.name=T", "-c", "commit.gpgsign=false",
+            "commit", "--quiet", "--allow-empty", "-m", "Teammate commit")  # fmt: skip
+        git(teammate, "push", "--quiet", "origin", "main")
+
+        with self.assertRaisesRegex(ReleaseError, "origin has new commits"):
             self.ship()
         self.assertEqual(self.runner.calls, [])
 

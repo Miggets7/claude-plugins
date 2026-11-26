@@ -103,7 +103,9 @@ release.
 
 One case needs you: if an App Store version is waiting for review when you ship the next one, the
 step that puts the texts on the new version fails, after both uploads. Wait for the review or
-remove the version from review, then run `release ship` again; it continues at that step.
+remove the version from review, then run `release ship` again; it continues at that step. Once
+Google Play or the App Store has the texts, `release translate` refuses, so both stores and the
+release commit keep the same text.
 
 If Google Play refuses a version code as already used although no track shows it, raise
 `versionCode` in the repo by hand, commit, and run `release prepare` again. Play remembers codes of
