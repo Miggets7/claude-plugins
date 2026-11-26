@@ -1,0 +1,17 @@
+product: android/app
+
+apply:
+  - //templates/demo.module-template.yaml
+
+dependencies:
+  - //composeApp
+
+settings:
+  android:
+    applicationId: com.example.plistapp
+    namespace: com.example.plistapp
+    targetSdk: 37
+    versionCode: 19
+    versionName: "1.2.0"
+    # Reads androidApp/keystore.properties; release packaging fails without it.
+    signing: enabled

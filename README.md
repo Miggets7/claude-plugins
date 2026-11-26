@@ -21,6 +21,12 @@ miscalibrations.
 /plugin install pr-review-verifier@miggets7-claude-plugins
 ```
 
+## Release tool
+
+[`release/`](./release) is a command-line tool that releases a mobile app from a Mac: version bump,
+drafted "What's new" text, build, upload to TestFlight and the Google Play internal track, commit
+and tag. It is not a Claude Code plugin. See [release/README.md](./release/README.md).
+
 ## Shared PR review workflow
 
 [`.github/workflows/pr-review.yml`](./.github/workflows/pr-review.yml) is a reusable
