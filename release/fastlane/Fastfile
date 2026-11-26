@@ -1,0 +1,121 @@
+# Store lanes for the release tool. Called by byrt_release/stores.py with absolute paths; not meant
+# to be run by hand. Keys come from the environment: KOTLIN_TOOLCHAIN_ASC_KEY_PATH, _KEY_ID and
+# _KEY_ISSUER_ID for App Store Connect, SUPPLY_JSON_KEY for Google Play.
+require "json"
+require "fileutils"
+
+opt_out_usage
+skip_docs
+
+PLAY_TRACKS = %w[internal alpha beta production].freeze
+
+def use_app_store_connect_key
+  app_store_connect_api_key(
+    key_id: ENV.fetch("KOTLIN_TOOLCHAIN_ASC_KEY_ID"),
+    issuer_id: ENV.fetch("KOTLIN_TOOLCHAIN_ASC_KEY_ISSUER_ID"),
+    key_filepath: ENV.fetch("KOTLIN_TOOLCHAIN_ASC_KEY_PATH")
+  )
+end
+
+def app_store_app(bundle_id)
+  app = Spaceship::ConnectAPI::App.find(bundle_id)
+  UI.user_error!("No app with bundle id #{bundle_id} on App Store Connect") unless app
+  app
+end
+
+def play_client(package_name)
+  require "supply"
+  require "supply/options"
+  Supply.config = FastlaneCore::Configuration.create(
+    Supply::Options.available_options, { package_name: package_name, track: "production" }
+  )
+  Supply::Client.make_from_config
+end
+
+# Writes {"android_code", "ios_build", "ios_live_name"} to `out`; a value the store does not have is null.
+lane :store_state do |options|
+  state = { "android_code" => nil, "ios_build" => nil, "ios_live_name" => nil }
+
+  if options[:bundle_id]
+    use_app_store_connect_key
+    state["ios_build"] = latest_testflight_build_number(
+      app_identifier: options[:bundle_id], initial_build_number: 0
+    ).to_i
+    live = app_store_app(options[:bundle_id]).get_live_app_store_version
+    state["ios_live_name"] = live&.version_string
+  end
+
+  if options[:package_name]
+    # A track without releases yields an empty list. Any other failure must stop `prepare`: a
+    # missing number here would hand Google Play a version code it has already seen.
+    codes = PLAY_TRACKS.flat_map do |track|
+      google_play_track_version_codes(package_name: options[:package_name], track: track)
+    end
+    state["android_code"] = codes.max
+  end
+
+  File.write(options[:out], JSON.generate(state))
+end
+
+# One folder per store language, holding the what's-new text that is live now.
+lane :fetch_listing do |options|
+  if options[:bundle_id]
+    use_app_store_connect_key
+    app = app_store_app(options[:bundle_id])
+    version = app.get_live_app_store_version || app.get_edit_app_store_version
+    UI.user_error!("#{options[:bundle_id]} has no App Store version yet") unless version
+    version.get_app_store_version_localizations.each do |localization|
+      dir = File.join(options[:ios_dir], localization.locale)
+      FileUtils.mkdir_p(dir)
+      File.write(File.join(dir, "release_notes.txt"), localization.whats_new.to_s)
+    end
+  end
+
+  if options[:package_name]
+    client = play_client(options[:package_name])
+    client.begin_edit(package_name: options[:package_name])
+    languages = client.listings.map(&:language)
+    releases = client.tracks("production").flat_map { |track| track.releases || [] }
+    release = releases.max_by { |candidate| (candidate.version_codes || []).map(&:to_i).max || 0 }
+    client.abort_current_edit
+
+    notes = (release&.release_notes || []).to_h { |note| [note.language, note.text.to_s] }
+    code = (release&.version_codes || []).map(&:to_i).max
+    languages.each do |language|
+      dir = File.join(options[:android_dir], language, "changelogs")
+      FileUtils.mkdir_p(dir)
+      if code && !notes[language].to_s.empty?
+        File.write(File.join(dir, "#{code}.txt"), notes[language])
+      else
+        FileUtils.touch(File.join(dir, ".gitkeep"))
+      end
+    end
+  end
+end
+
+lane :upload_android do |options|
+  upload_to_play_store(
+    package_name: options[:package_name],
+    aab: options[:aab],
+    track: "internal",
+    metadata_path: options[:metadata_path],
+    skip_upload_apk: true,
+    skip_upload_metadata: true,
+    skip_upload_images: true,
+    skip_upload_screenshots: true
+  )
+end
+
+lane :upload_ios_notes do |options|
+  use_app_store_connect_key
+  deliver(
+    app_identifier: options[:bundle_id],
+    app_version: options[:app_version],
+    metadata_path: options[:metadata_path],
+    skip_binary_upload: true,
+    skip_screenshots: true,
+    force: true,
+    submit_for_review: false,
+    run_precheck_before_submit: false
+  )
+end

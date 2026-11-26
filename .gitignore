@@ -2,3 +2,6 @@
 .claude/settings.local.json
 .DS_Store
 *.swp
+__pycache__/
+release/fastlane/report.xml
+release/fastlane/README.md

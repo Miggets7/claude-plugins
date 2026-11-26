@@ -1,0 +1,29 @@
+// !$*UTF8*$!
+{
+	objects = {
+		AAAA0001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = ABCDE12345;
+				INFOPLIST_FILE = Demo/Info.plist;
+				MARKETING_VERSION = 1.72;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.xcodeapp;
+				PRODUCT_NAME = Demo;
+			};
+			name = Debug;
+		};
+		AAAA0002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = ABCDE12345;
+				INFOPLIST_FILE = Demo/Info.plist;
+				MARKETING_VERSION = 1.72;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.xcodeapp;
+				PRODUCT_NAME = Demo;
+			};
+			name = Release;
+		};
+	};
+}

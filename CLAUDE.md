@@ -11,10 +11,15 @@ claude-plugins/
 ├── README.md
 ├── .github/workflows/pr-review.yml           # Shared PR review (reusable)
 ├── .github/workflows/claude-code-review.yml   # Calls it for this repo
-└── pr-review-verifier/                       # The only plugin currently
-    ├── .claude-plugin/plugin.json
-    ├── skills/verify-pr/SKILL.md
-    └── README.md
+├── pr-review-verifier/                       # The only plugin currently
+│   ├── .claude-plugin/plugin.json
+│   ├── skills/verify-pr/SKILL.md
+│   └── README.md
+└── release/                                  # App release tool (not a plugin)
+    ├── release                               # Entry point, symlinked to ~/.local/bin/release
+    ├── byrt_release/                         # Python package, standard library only
+    ├── fastlane/Fastfile                     # Store lanes
+    └── tests/
 ```
 
 ## Plugin: pr-review-verifier
@@ -108,3 +113,21 @@ Design decisions:
   back in the sticky comment on every push.
 - Review principles mirror the owner's global code review rules (YAGNI, DRY,
   KISS, blocking criteria).
+
+## Release tool: release/
+
+`release/` is a Python command-line tool that releases the Byrt mobile apps from the Mac. It is run
+from inside an app repo (`release prepare`, then `release ship`); usage is in `release/README.md`.
+
+Design decisions:
+- One copy of the tool here, no per-repo copy or config. The repo kind is detected from its files.
+- This repo is public. Keep app names, bundle ids and keys out of the tool and its tests; fixtures
+  use `com.example.*`. Keys live in `~/.config/byrt-release/`, never in a repo.
+- Every command the tool runs goes through an injected `Runner` (`byrt_release/stores.py`), and the
+  model call through an injected `Ask`, so tests record calls and run nothing.
+- Uploads go only to TestFlight and the Play internal track. The Fastfile must never submit for
+  review or name the production track in an upload; `tests/test_stores.py` checks both.
+- `ship` records finished steps in `~/.cache/byrt-release/` and resumes there, because Google Play
+  refuses a version code it has seen.
+
+Tests: `python3 -m unittest discover -s release/tests -t release`

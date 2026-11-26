@@ -1,0 +1,9 @@
+product: android/app
+
+settings:
+  android:
+    applicationId: com.example.pbxapp
+    namespace: com.example.pbxapp
+    targetSdk: 36
+    versionCode: 4
+    versionName: "1.1"
